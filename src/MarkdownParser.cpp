@@ -10,7 +10,8 @@ MarkdownParser::MarkdownParser(){
 
 
 var::JsonObject MarkdownParser::extract_code_snippets(
-		arg::SourceFilePath file_path
+		arg::SourceFilePath file_path,
+		var::JsonObject properties
 		){
 
 	File markdown_input_file;
@@ -93,6 +94,34 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 					code_block_object.insert(
 								arg::JsonKey("line"),
 								JsonInteger(line_number)
+								);
+
+					code_block_object.insert(
+								arg::JsonKey("template"),
+								properties.at(
+									arg::JsonKey("template")
+									)
+								);
+
+					code_block_object.insert(
+								arg::JsonKey("buildDirectory"),
+								properties.at(
+									arg::JsonKey("buildDirectory")
+									)
+								);
+
+					code_block_object.insert(
+								arg::JsonKey("cmakeOptions"),
+								properties.at(
+									arg::JsonKey("cmakeOptions")
+									)
+								);
+
+					code_block_object.insert(
+								arg::JsonKey("makeOptions"),
+								properties.at(
+									arg::JsonKey("makeOptions")
+									)
 								);
 
 					DataReference code_block_data_reference =

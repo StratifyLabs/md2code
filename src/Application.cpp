@@ -72,7 +72,8 @@ int Application::parse_markdown(){
 							<< input_path
 							<< "/"
 							<< file_path
-							)
+							),
+						markdown_entry
 						);
 
 			if( code_blocks.is_empty() == false ){

@@ -61,15 +61,14 @@ int Code::generate(
 }
 
 int Code::create_code_project(
+		arg::SourceDirectoryPath template_path,
 		arg::DestinationDirectoryPath destination_path
 		){
 
 
 	if( Dir::create(
 			 arg::DestinationDirectoryPath(
-				 String()
-				 << destination_path.argument()
-				 << "/src"
+				 destination_path.argument()
 				 ),
 			 Permissions::all_access(),
 			 arg::IsRecursive(true)
@@ -79,6 +78,8 @@ int Code::create_code_project(
 					destination_path.argument().cstring()
 					);
 	}
+
+	//recursive copy the template path to the destination path
 
 
 

@@ -13,6 +13,7 @@ public:
 
 private:
 	int create_code_project(
+			arg::SourceDirectoryPath template_path,
 			arg::DestinationDirectoryPath destination_path
 			);
 
