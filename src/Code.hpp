@@ -17,6 +17,15 @@ private:
 			arg::DestinationDirectoryPath destination_path
 			);
 
+	int insert_code_snippets(
+			arg::SourceJsonValue code_snippets,
+			arg::DestinationDirectoryPath destination_path
+			);
+
+	int build_code(
+			arg::SourceDirectoryPath build_directory
+			);
+
 };
 
 #endif // CODE_HPP

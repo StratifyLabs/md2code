@@ -29,6 +29,7 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 
 	String line;
 	int line_number = 1;
+	int start_code_line = 1;
 	int code_block_line = 0;
 	bool is_on_code_block = false;
 	String code_block_string;
@@ -47,6 +48,7 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 			 ){
 			if( code_block_line == 0 ){
 				code_block_header = line;
+				start_code_line = line_number;
 			}
 			code_block_string << line;
 			code_block_line++;
@@ -87,48 +89,17 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 								);
 
 					code_block_object.insert(
-								arg::JsonKey("source"),
-								JsonString(file_path.argument())
-								);
-
-					code_block_object.insert(
 								arg::JsonKey("line"),
-								JsonInteger(line_number)
+								JsonInteger(start_code_line)
 								);
 
-					code_block_object.insert(
-								arg::JsonKey("template"),
-								properties.at(
-									arg::JsonKey("template")
-									)
-								);
-
-					code_block_object.insert(
-								arg::JsonKey("buildDirectory"),
-								properties.at(
-									arg::JsonKey("buildDirectory")
-									)
-								);
-
-					code_block_object.insert(
-								arg::JsonKey("cmakeOptions"),
-								properties.at(
-									arg::JsonKey("cmakeOptions")
-									)
-								);
-
-					code_block_object.insert(
-								arg::JsonKey("makeOptions"),
-								properties.at(
-									arg::JsonKey("makeOptions")
-									)
-								);
 
 					DataReference code_block_data_reference =
 							DataReference(
 								arg::ReadOnlyBuffer(code_block_string.to_const_void()),
 								arg::Size(code_block_string.length())
 								);
+
 					code_block_object.insert(
 								arg::JsonKey("code"),
 								JsonString(Base64::encode(
@@ -136,6 +107,8 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 												  )
 											  )
 								);
+
+
 
 					code_block_array.append(code_block_object);
 				}
@@ -151,8 +124,64 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 
 	if( code_block_array.count() > 0 ){
 
+
+
+		String name = File::name(file_path.argument());
+
+		name.replace(
+					arg::StringToErase(".md"),
+					arg::StringToInsert("")
+					);
+
 		result.insert(
-					arg::JsonKey("codeBlocks"),
+					arg::JsonKey("name"),
+					JsonString(name)
+					);
+
+		result.insert(
+					arg::JsonKey("destinationDirectory"),
+					JsonString(
+						properties.at(
+							arg::JsonKey("output")
+							).to_string() << "/code/" << name
+						)
+					);
+
+		result.insert(
+					arg::JsonKey("source"),
+					JsonString(file_path.argument())
+					);
+
+		result.insert(
+					arg::JsonKey("template"),
+					properties.at(
+						arg::JsonKey("template")
+						)
+					);
+
+		result.insert(
+					arg::JsonKey("buildDirectory"),
+					properties.at(
+						arg::JsonKey("buildDirectory")
+						)
+					);
+
+		result.insert(
+					arg::JsonKey("cmakeOptions"),
+					properties.at(
+						arg::JsonKey("cmakeOptions")
+						)
+					);
+
+		result.insert(
+					arg::JsonKey("makeOptions"),
+					properties.at(
+						arg::JsonKey("makeOptions")
+						)
+					);
+
+		result.insert(
+					arg::JsonKey("snippets"),
 					code_block_array
 					);
 	}
