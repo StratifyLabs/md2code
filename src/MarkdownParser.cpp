@@ -68,24 +68,14 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 
 				if( (header.count() >= 2) &&
 					 header.at(0).find(
-						 arg::StringToFind("//")
-						 ) == 0 ){
+						 arg::StringToFind("//md2code")
+						 ) != String::npos ){
 
-					// header: //cpp:snippet - compile but don't link
-					// Or: //cpp:program - compile and link
+					//header is : //md2code:<section>
+
 					code_block_object.insert(
-								arg::JsonKey("language"),
+								arg::JsonKey("section"),
 								JsonString(header.at(1))
-								);
-
-					code_block_object.insert(
-								arg::JsonKey("type"),
-								JsonString(header.at(2))
-								);
-
-					code_block_object.insert(
-								arg::JsonKey("module"),
-								JsonString(header.at(3))
 								);
 
 					code_block_object.insert(
