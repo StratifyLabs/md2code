@@ -6,22 +6,51 @@
 #include "MarkdownParser.hpp"
 #include "Code.hpp"
 
-Application::Application()
-{
+Application::Application(){
 
 }
 
 int Application::run(){
+	int result;
+	printer().open_object("settings");
 	settings().initialize();
+	printer().close_object();
 
-	if( parse_markdown() < 0 ){
-		return -1;
+	String is_parse = cli().get_option(
+				arg::OptionName("parse"),
+				arg::OptionDescription("parse markdown in to snippets")
+				);
+
+	if( is_parse.is_empty() ){
+		is_parse = "true";
 	}
 
-	if( generate_code() < 0 ){
-		return -1;
+	if( is_parse == "true" ){
+
+		printer().open_object("markdown");
+		result = parse_markdown();
+		printer().close_object();
+		if( result < 0 ){
+			return -1;
+		}
 	}
 
+	String is_code = cli().get_option(
+				arg::OptionName("generate"),
+				arg::OptionDescription("generate code from snippets")
+				);
+
+	if( is_code.is_empty() ){
+		is_code = "true";
+	}
+	if( is_code == "true" ){
+		printer().open_object("code");
+		result = generate_code();
+		printer().close_object();
+		if( result < 0 ){
+			return -1;
+		}
+	}
 
 	return 0;
 }
@@ -33,6 +62,7 @@ int Application::parse_markdown(){
 
 	for(u32 i=0; i < markdown.count(); i++){
 		JsonObject markdown_entry = markdown.at(i).to_object();
+
 		String input_path =  markdown_entry.at(
 					arg::JsonKey("input")
 					).to_string();
@@ -42,6 +72,8 @@ int Application::parse_markdown(){
 					).to_string();
 
 		output_path << "/snippets";
+
+		printer().open_array(input_path);
 
 		if( Dir::create(
 				 arg::DestinationDirectoryPath(output_path),
@@ -61,6 +93,7 @@ int Application::parse_markdown(){
 					);
 
 		for(auto file_path: input_file_list){
+
 
 			if( file_path == "." ){ continue; }
 			if( file_path == ".." ){ continue; }
@@ -84,6 +117,14 @@ int Application::parse_markdown(){
 							arg::StringToInsert("")
 							);
 
+				printer().key(
+							file_path,
+							"%d snippets",
+							code_blocks.at(
+								arg::JsonKey("snippets")
+								).to_array().count()
+							);
+
 				output_file_path
 						<< output_path
 						<< "/"
@@ -98,14 +139,17 @@ int Application::parse_markdown(){
 						 arg::SourceJsonValue(code_blocks),
 						 arg::DestinationFilePath(output_file_path)
 						 ) < 0 ){
+					printer().close_array();
 					printer().error(
 								"failed to save snippet file as '%s'",
 								output_file_path.cstring()
 								);
+					return -1;
 				}
 			}
 		}
 	}
+	printer().close_array();
 	return 0;
 }
 

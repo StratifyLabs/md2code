@@ -3,8 +3,7 @@
 #include <sapi/calc.hpp>
 #include <sapi/fs.hpp>
 
-Code::Code()
-{
+Code::Code(){
 
 }
 
@@ -54,14 +53,28 @@ int Code::generate(
 				arg::DestinationDirectoryPath(destination_directory)
 				);
 
-	build_code(
-				arg::SourceDirectoryPath(
-					String()
-					<< destination_directory
-					<< "/"
-					<< build_directory
-					)
+	String is_build = cli().get_option(
+				arg::OptionName("build"),
+				arg::OptionDescription("Do not build the output code")
 				);
+
+	if( is_build.is_empty() ){
+		is_build = "true";
+	}
+
+	if( is_build == "true" ){
+
+		printf("\n--------------------Start Build Output-------------------\n");
+		build_code(
+					arg::SourceDirectoryPath(
+						String()
+						<< destination_directory
+						<< "/"
+						<< build_directory
+						)
+					);
+		printf("\n--------------------End Build Output-------------------\n");
+	}
 
 	return 0;
 }
@@ -138,14 +151,14 @@ int Code::insert_code_snippets(
 	while(
 			((line = main_file.gets()).is_empty() == false)
 			&& line.find(
-				arg::StringToFind("//include")
+				arg::StringToFind("//md2code:include")
 				) == String::npos
 			){
 		main_content << line;
 	}
 
 	if( line.is_empty() ){
-		printer().error("no '//include' marker in template");
+		printer().error("no '//md2code:include' marker in template");
 		return -1;
 	}
 
@@ -174,14 +187,14 @@ int Code::insert_code_snippets(
 	while(
 			((line = main_file.gets()).is_empty() == false)
 			&& line.find(
-				arg::StringToFind("//main")
+				arg::StringToFind("//md2code:main")
 				) == String::npos
 			){
 		main_content << line;
 	}
 
 	if( line.is_empty() ){
-		printer().error("no '//main' marker in template");
+		printer().error("no '//md2code:main' marker in template");
 		return -1;
 	}
 
@@ -203,7 +216,9 @@ int Code::insert_code_snippets(
 						);
 
 			Data code_block_data = Base64::decode(encoded_string);
+			main_content << "{\n";
 			main_content << String(code_block_data);
+			main_content << "}\n";
 		}
 	}
 
