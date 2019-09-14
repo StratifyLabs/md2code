@@ -130,12 +130,15 @@ int Code::insert_code_snippets(
 
 	File main_file;
 	String main_content;
+	String main_file_path;
+
+	main_file_path =
+			String()
+			<< destination_path.argument()
+			<< "/src/main.cpp";
 
 	if( main_file.open(
-			 arg::FilePath(
-				 String()
-				 << destination_path.argument()
-				 << "/src/main.cpp"),
+			 arg::FilePath(main_file_path),
 			 OpenFlags::read_only()
 			 ) < 0 ){
 
@@ -148,6 +151,13 @@ int Code::insert_code_snippets(
 	}
 
 	String line;
+
+	printer().debug(
+				"insert %d snippets in '%s'",
+				snippets_array.count(),
+				main_file_path.cstring()
+				);
+
 	while(
 			((line = main_file.gets()).is_empty() == false)
 			&& line.find(
@@ -165,11 +175,11 @@ int Code::insert_code_snippets(
 	for(u32 i=0; i < snippets_array.count(); i++){
 		JsonObject snippet_object = snippets_array.at(i).to_object();
 
-		String type = snippet_object.at(
-					arg::JsonKey("type")
+		String section = snippet_object.at(
+					arg::JsonKey("section")
 					).to_string();
 
-		if( type == "include" ){
+		if( section == "include" ){
 			String encoded_string = snippet_object.at(
 						arg::JsonKey("code")
 						).to_string();
@@ -201,11 +211,11 @@ int Code::insert_code_snippets(
 	for(u32 i=0; i < snippets_array.count(); i++){
 		JsonObject snippet_object = snippets_array.at(i).to_object();
 
-		String type = snippet_object.at(
-					arg::JsonKey("type")
+		String section = snippet_object.at(
+					arg::JsonKey("section")
 					).to_string();
 
-		if( type == "main" ){
+		if( section == "main" ){
 			String encoded_string = snippet_object.at(
 						arg::JsonKey("code")
 						).to_string();
@@ -217,6 +227,11 @@ int Code::insert_code_snippets(
 
 			Data code_block_data = Base64::decode(encoded_string);
 			main_content << "{\n";
+			String code_block_string = String(code_block_data);
+			code_block_string.replace(
+						arg::StringToErase("\n"),
+						arg::StringToInsert("\n\t")
+						);
 			main_content << String(code_block_data);
 			main_content << "}\n";
 		}

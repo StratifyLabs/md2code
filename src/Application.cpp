@@ -26,7 +26,6 @@ int Application::run(){
 	}
 
 	if( is_parse == "true" ){
-
 		printer().open_object("markdown");
 		result = parse_markdown();
 		printer().close_object();
