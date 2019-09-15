@@ -226,14 +226,14 @@ int Code::insert_code_snippets(
 						);
 
 			Data code_block_data = Base64::decode(encoded_string);
-			main_content << "{\n";
+			main_content << "  {\n";
 			String code_block_string = String(code_block_data);
 			code_block_string.replace(
 						arg::StringToErase("\n"),
-						arg::StringToInsert("\n\t")
+						arg::StringToInsert("\n    ")
 						);
-			main_content << String(code_block_data);
-			main_content << "}\n";
+			main_content << "    " << code_block_string;
+			main_content << "\n  }\n";
 		}
 	}
 
