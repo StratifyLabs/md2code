@@ -7,29 +7,32 @@ The snippets are placed into a directory structure that can be used to build and
 The snippet must be marked as follows
 
 ```
-//md2code: <snippet|program>
+//md2code:<section>
 ```
 
 For example:
 
 ```
-//md2code: program
+//md2code:include
+#include <sapi/var.hpp>
+```
 
-#include <stdio.h>
+```
+//md2code:main
+Data a = Data(arg::Size(64));
+```
+
+Becomes:
+
+```
+//md2code:include
+#include <sapi/var.hpp>
 
 int main(int argc, char * argv[]){
-   printf("Hello World\n");
+  {
+    //md2code:main
+    Data a = Data(arg::Size(64));
+  }
+  return 0;
 }
-```
-
-A snippet example:
-
-```
-//md2code: snippet
-
-#include <sapi/fs.hpp>
-
-File f;
-f.open(arg::SourceFile("/home/test.txt"));
-f.close();
 ```
