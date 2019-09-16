@@ -1,10 +1,9 @@
 # md2code
 
-md2code is a C++ application that will pull C/C++ code snippets out of markdown. The purpose is to allow the compilation of code snippets so that they can be posted free of compilation errors.
+md2code is a C++ application that will pull C/C++ code snippets out of markdown and build them as test programs. The purpose is to allow the compilation of all documentation code snippets so the examples never get stale.
 
-The snippets are placed into a directory structure that can be used to build and optionally execute the code.
+The snippets are placed into a directory structure (based on a given template) that can be used to build and optionally execute the code.
 
-The snippet must be marked as follows
 
 ```
 //md2code:<section>
@@ -36,3 +35,5 @@ int main(int argc, char * argv[]){
   return 0;
 }
 ```
+
+There is a working example at [StratifyDocs](https://github.com/StratifyLabs/StratifyDocs) with the code at [StratifyDocsCode](https://github.com/StratifyLabs/StratifyDocsCode).
