@@ -62,8 +62,8 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 				//this is the end of the code block
 				JsonObject code_block_object;
 				Tokenizer header(
-							arg::TokenEncodedString(code_block_header),
-							arg::TokenDelimeters(":\n")
+							Tokenizer::EncodedString(code_block_header),
+							Tokenizer::Delimeters(":\n")
 							);
 
 				if( (header.count() >= 2) &&
