@@ -15,7 +15,7 @@ int Settings::initialize(){
 
 	JsonDocument document;
 	m_settings = document.load(
-				arg::SourceFilePath(settings_file_name())
+				fs::File::Path(settings_file_name())
 				).to_object();
 
 	if( m_settings.is_empty() ){

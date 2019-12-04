@@ -16,14 +16,14 @@ int main(int argc, char * argv[]){
 
 	ApplicationPrinter::printer().set_verbose_level(
 				cli.get_option(
-					arg::OptionName("verbose"),
-					arg::OptionDescription("verbosity level use <debug|message|info|warning|error>")
+					"verbose",
+					Cli::Description("verbosity level use <debug|message|info|warning|error>")
 					)
 				);
 
 	if( cli.get_option(
-			 arg::OptionName("version"),
-			 arg::OptionDescription("show the md2code version information")
+			 "version",
+			 Cli::Description("show the md2code version information")
 			 ) == "true" ){
 		ApplicationPrinter::printer().open_object("about");
 		ApplicationPrinter::printer().key("publisher", "Stratify Labs, Inc");

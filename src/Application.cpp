@@ -17,8 +17,8 @@ int Application::run(){
 	printer().close_object();
 
 	String is_parse = cli().get_option(
-				arg::OptionName("parse"),
-				arg::OptionDescription("parse markdown in to snippets")
+				"parse",
+				Cli::Description("parse markdown in to snippets")
 				);
 
 	if( is_parse.is_empty() ){
@@ -35,8 +35,8 @@ int Application::run(){
 	}
 
 	String is_code = cli().get_option(
-				arg::OptionName("generate"),
-				arg::OptionDescription("generate code from snippets")
+				"generate",
+				Cli::Description("generate code from snippets")
 				);
 
 	if( is_code.is_empty() ){
@@ -62,22 +62,20 @@ int Application::parse_markdown(){
 	for(u32 i=0; i < markdown.count(); i++){
 		JsonObject markdown_entry = markdown.at(i).to_object();
 
-		String input_path =  markdown_entry.at(
-					arg::JsonKey("input")
-					).to_string();
+		String input_path =
+				markdown_entry.at("input").to_string();
 
-		String output_path =  markdown_entry.at(
-					arg::JsonKey("output")
-					).to_string();
+		String output_path =
+				markdown_entry.at("output").to_string();
 
 		output_path << "/snippets";
 
 		printer().open_array(input_path);
 
 		if( Dir::create(
-				 arg::DestinationDirectoryPath(output_path),
+				 output_path,
 				 Permissions::all_access(),
-				 arg::IsRecursive(true)
+				 Dir::IsRecursive(true)
 				 ) < 0 ){
 
 			printer().error(
@@ -87,9 +85,7 @@ int Application::parse_markdown(){
 		}
 
 		Vector<String> input_file_list =
-				Dir::read_list(
-					arg::SourceDirectoryPath(input_path)
-					);
+				Dir::read_list(input_path);
 
 		for(auto file_path: input_file_list){
 
@@ -99,12 +95,10 @@ int Application::parse_markdown(){
 
 			JsonObject code_blocks =
 					parser.extract_code_snippets(
-						arg::SourceFilePath(
-							String()
-							<< input_path
-							<< "/"
-							<< file_path
-							),
+						String()
+						<< input_path
+						<< "/"
+						<< file_path,
 						markdown_entry
 						);
 
@@ -112,16 +106,14 @@ int Application::parse_markdown(){
 				String output_file_path;
 
 				file_path.replace(
-							arg::StringToErase(".md"),
-							arg::StringToInsert("")
+							String::ToErase(".md"),
+							String::ToInsert("")
 							);
 
 				printer().key(
 							file_path,
 							"%d snippets",
-							code_blocks.at(
-								arg::JsonKey("snippets")
-								).to_array().count()
+							code_blocks.at("snippets").to_array().count()
 							);
 
 				output_file_path
@@ -135,8 +127,8 @@ int Application::parse_markdown(){
 				document.set_flags(JsonDocument::INDENT_2);
 
 				if( document.save(
-						 arg::SourceJsonValue(code_blocks),
-						 arg::DestinationFilePath(output_file_path)
+						 code_blocks,
+						 fs::File::Path(output_file_path)
 						 ) < 0 ){
 					printer().close_array();
 					printer().error(
@@ -158,9 +150,8 @@ int Application::generate_code(){
 
 	for(u32 i=0; i < markdown.count(); i++){
 		JsonObject markdown_entry = markdown.at(i).to_object();
-		String output_path =	markdown_entry.at(
-					arg::JsonKey("output")
-					).to_string();
+		String output_path =
+				markdown_entry.at("output").to_string();
 
 		String snippets_path =
 				String()
@@ -168,9 +159,7 @@ int Application::generate_code(){
 				<< "/snippets";
 
 		Vector<String> snippet_files =
-				Dir::read_list(
-					arg::SourceDirectoryPath(snippets_path)
-					);
+				Dir::read_list(snippets_path);
 
 		for(auto input_file_name: snippet_files){
 
@@ -188,9 +177,7 @@ int Application::generate_code(){
 						input_file_path.cstring()
 						);
 
-			code.generate(
-						arg::SourceFilePath(input_file_path)
-						);
+			code.generate(input_file_path);
 
 		}
 

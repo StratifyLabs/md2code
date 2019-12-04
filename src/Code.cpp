@@ -8,54 +8,42 @@ Code::Code(){
 }
 
 
-int Code::generate(
-		arg::SourceFilePath snippets_path
-		){
+int Code::generate(const var::String & snippets_path){
 
 	JsonObject project_object = JsonDocument().load(
 				snippets_path
 				).to_object();
 
 	JsonArray snippets_array =
-			project_object.at(
-				arg::JsonKey("snippets")
-				).to_array();
+			project_object.at("snippets").to_array();
 
 	printer().debug(
 				"loaded %d snippets from '%s'",
 				snippets_array.count(),
-				snippets_path.argument().cstring()
+				snippets_path.cstring()
 				);
 
 	String destination_directory =
-			project_object.at(
-				arg::JsonKey("destinationDirectory")
-				).to_string();
+			project_object.at("destinationDirectory").to_string();
 
 	String build_directory =
-			project_object.at(
-				arg::JsonKey("buildDirectory")
-				).to_string();
+			project_object.at("buildDirectory").to_string();
 
 	create_code_project(
-				arg::SourceDirectoryPath(
-					project_object.at(
-						arg::JsonKey("template")
-						).to_string()
+				fs::File::SourcePath(
+					project_object.at("template").to_string()
 					),
-				arg::DestinationDirectoryPath(destination_directory)
+				fs::File::DestinationPath(destination_directory)
 				);
 
 	insert_code_snippets(
-				arg::SourceJsonValue(
-					snippets_array
-					),
-				arg::DestinationDirectoryPath(destination_directory)
+				snippets_array,
+				destination_directory
 				);
 
 	String is_build = cli().get_option(
-				arg::OptionName("build"),
-				arg::OptionDescription("Do not build the output code")
+				"build",
+				sys::Cli::Description("Do not build the output code")
 				);
 
 	if( is_build.is_empty() ){
@@ -66,12 +54,10 @@ int Code::generate(
 
 		printf("\n--------------------Start Build Output-------------------\n");
 		build_code(
-					arg::SourceDirectoryPath(
-						String()
-						<< destination_directory
-						<< "/"
-						<< build_directory
-						)
+					String()
+					<< destination_directory
+					<< "/"
+					<< build_directory
 					);
 		printf("\n--------------------End Build Output-------------------\n");
 	}
@@ -80,8 +66,8 @@ int Code::generate(
 }
 
 int Code::create_code_project(
-		arg::SourceDirectoryPath template_path,
-		arg::DestinationDirectoryPath destination_path
+		fs::File::SourcePath template_path,
+		fs::File::DestinationPath destination_path
 		){
 
 	printer().debug(
@@ -90,11 +76,9 @@ int Code::create_code_project(
 				);
 
 	if( Dir::create(
-			 arg::DestinationDirectoryPath(
-				 destination_path.argument()
-				 ),
+			 destination_path.argument(),
 			 Permissions::all_access(),
-			 arg::IsRecursive(true)
+			 Dir::IsRecursive(true)
 			 ) < 0 ){
 		printer().error(
 					"failed to create directory for '%s'",
@@ -104,8 +88,8 @@ int Code::create_code_project(
 
 	//recursive copy the template path to the destination path
 	if( Dir::copy(
-			 arg::SourceDirectoryPath(template_path),
-			 arg::DestinationDirectoryPath(destination_path)
+			 fs::File::SourcePath(template_path),
+			 fs::File::DestinationPath(destination_path)
 			 ) < 0 ){
 
 		printer().error(
@@ -121,12 +105,11 @@ int Code::create_code_project(
 	return 0;
 }
 
-int Code::insert_code_snippets(
-		arg::SourceJsonValue code_snippets,
-		arg::DestinationDirectoryPath destination_path
-		){
+int Code::insert_code_snippets(const JsonValue & code_snippets,
+										 const var::String & destination_path
+										 ){
 
-	JsonArray snippets_array = code_snippets.argument().to_array();
+	JsonArray snippets_array = code_snippets.to_array();
 
 	File main_file;
 	String main_content;
@@ -134,17 +117,17 @@ int Code::insert_code_snippets(
 
 	main_file_path =
 			String()
-			<< destination_path.argument()
+			<< destination_path
 			<< "/src/main.cpp";
 
 	if( main_file.open(
-			 arg::FilePath(main_file_path),
+			 main_file_path,
 			 OpenFlags::read_only()
 			 ) < 0 ){
 
 		printer().error(
 					"failed to open main.cpp file in '%s/src'",
-					destination_path.argument().cstring()
+					destination_path.cstring()
 					);
 
 		return -1;
@@ -160,9 +143,7 @@ int Code::insert_code_snippets(
 
 	while(
 			((line = main_file.gets()).is_empty() == false)
-			&& line.find(
-				arg::StringToFind("//md2code:include")
-				) == String::npos
+			&& line.find("//md2code:include") == String::npos
 			){
 		main_content << line;
 	}
@@ -175,14 +156,12 @@ int Code::insert_code_snippets(
 	for(u32 i=0; i < snippets_array.count(); i++){
 		JsonObject snippet_object = snippets_array.at(i).to_object();
 
-		String section = snippet_object.at(
-					arg::JsonKey("section")
-					).to_string();
+		String section =
+				snippet_object.at("section").to_string();
 
 		if( section == "include" ){
-			String encoded_string = snippet_object.at(
-						arg::JsonKey("code")
-						).to_string();
+			String encoded_string =
+					snippet_object.at("code").to_string();
 
 			printer().debug(
 						"insert block in include - '%s'",
@@ -196,9 +175,7 @@ int Code::insert_code_snippets(
 
 	while(
 			((line = main_file.gets()).is_empty() == false)
-			&& line.find(
-				arg::StringToFind("//md2code:main")
-				) == String::npos
+			&& line.find("//md2code:main") == String::npos
 			){
 		main_content << line;
 	}
@@ -211,14 +188,12 @@ int Code::insert_code_snippets(
 	for(u32 i=0; i < snippets_array.count(); i++){
 		JsonObject snippet_object = snippets_array.at(i).to_object();
 
-		String section = snippet_object.at(
-					arg::JsonKey("section")
-					).to_string();
+		String section =
+				snippet_object.at("section").to_string();
 
 		if( section == "main" ){
-			String encoded_string = snippet_object.at(
-						arg::JsonKey("code")
-						).to_string();
+			String encoded_string =
+					snippet_object.at("code").to_string();
 
 			printer().debug(
 						"insert block in main - '%s'",
@@ -229,8 +204,8 @@ int Code::insert_code_snippets(
 			main_content << "  {\n";
 			String code_block_string = String(code_block_data);
 			code_block_string.replace(
-						arg::StringToErase("\n"),
-						arg::StringToInsert("\n    ")
+						String::ToErase("\n"),
+						String::ToInsert("\n    ")
 						);
 			main_content << "    " << code_block_string;
 			main_content << "\n  }\n";
@@ -246,16 +221,15 @@ int Code::insert_code_snippets(
 	main_file.close();
 
 	if( main_file.create(
-			 arg::DestinationFilePath(
-				 String()
-				 << destination_path.argument()
-				 << "/src/main.cpp"),
-			 arg::IsOverwrite(true)
+			 String()
+			 << destination_path
+			 << "/src/main.cpp",
+			 File::IsOverwrite(true)
 			 ) < 0 ){
 
 		printer().error(
 					"failed to open main.cpp file in '%s/src'",
-					destination_path.argument().cstring()
+					destination_path.cstring()
 					);
 
 		return -1;
@@ -268,21 +242,16 @@ int Code::insert_code_snippets(
 
 }
 
-int Code::build_code(
-		arg::SourceDirectoryPath build_directory
-		){
+int Code::build_code(const var::String & build_directory
+							){
 
 	//make sure the build directory exists
 
-	if( Dir::exists(
-			 arg::SourceDirectoryPath(build_directory.argument())
-			 ) == false ){
-		if( Dir::create(
-				 arg::DestinationDirectoryPath(build_directory.argument())
-				 ) < 0 ){
+	if( Dir::exists(build_directory) == false ){
+		if( Dir::create(build_directory) < 0 ){
 			printer().warning(
 						"failed to create build directory '%s'",
-						build_directory.argument().cstring()
+						build_directory.cstring()
 						);
 			return -1;
 		}
@@ -290,7 +259,7 @@ int Code::build_code(
 
 	String execute;
 
-	execute << "cmake -E chdir " << build_directory.argument() << " cmake ";
+	execute << "cmake -E chdir " << build_directory << " cmake ";
 
 #if 0
 	if( api::ApiInfo::is_windows() ){
@@ -308,7 +277,7 @@ int Code::build_code(
 	system(execute.cstring());
 	execute.clear();
 
-	execute << "cmake --build " << build_directory.argument() <<  " -- -j8";
+	execute << "cmake --build " << build_directory <<  " -- -j8";
 	system(execute.cstring());
 	execute.clear();
 

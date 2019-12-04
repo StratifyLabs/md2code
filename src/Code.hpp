@@ -7,23 +7,21 @@ class Code : public Object {
 public:
 	Code();
 
-	int generate(
-			arg::SourceFilePath snippets_path
-			);
+	int generate(const var::String & snippets_path);
 
 private:
 	int create_code_project(
-			arg::SourceDirectoryPath template_path,
-			arg::DestinationDirectoryPath destination_path
+			fs::File::SourcePath template_path,
+			fs::File::DestinationPath destination_path
 			);
 
 	int insert_code_snippets(
-			arg::SourceJsonValue code_snippets,
-			arg::DestinationDirectoryPath destination_path
+			const var::JsonValue & code_snippets,
+			const var::String & destination_path
 			);
 
 	int build_code(
-			arg::SourceDirectoryPath build_directory
+			const var::String & build_directory
 			);
 
 };

@@ -10,19 +10,19 @@ MarkdownParser::MarkdownParser(){
 
 
 var::JsonObject MarkdownParser::extract_code_snippets(
-		arg::SourceFilePath file_path,
+		const var::String & file_path,
 		var::JsonObject properties
 		){
 
 	File markdown_input_file;
 
 	if( markdown_input_file.open(
-			 arg::FilePath(file_path.argument()),
+			 file_path,
 			 OpenFlags::read_only()
 			 ) < 0 ){
 		printer().error(
 					"failed to open markdown source file '%s'",
-					file_path.argument().cstring()
+					file_path.cstring()
 					);
 		return JsonObject();
 	}
@@ -42,9 +42,7 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 			){
 
 		if( is_on_code_block &&
-			 (line.find(
-				  arg::StringToFind("```")
-				  ) == String::npos)
+			 (line.find("```") == String::npos)
 			 ){
 			if( code_block_line == 0 ){
 				code_block_header = line;
@@ -54,48 +52,36 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 			code_block_line++;
 		}
 
-		if( line.find(
-				 arg::StringToFind("```")
-				 ) == 0
+		if( line.find("```") == 0
 			 ){
 			if( is_on_code_block ){
 				//this is the end of the code block
 				JsonObject code_block_object;
 				Tokenizer header(
-							Tokenizer::EncodedString(code_block_header),
+							code_block_header,
 							Tokenizer::Delimeters(":\n")
 							);
 
 				if( (header.count() >= 2) &&
-					 header.at(0).find(
-						 arg::StringToFind("//md2code")
-						 ) != String::npos ){
+					 header.at(0).find("//md2code") != String::npos ){
 
 					//header is : //md2code:<section>
 
 					code_block_object.insert(
-								arg::JsonKey("section"),
+								"section",
 								JsonString(header.at(1))
 								);
 
 					code_block_object.insert(
-								arg::JsonKey("line"),
+								"line",
 								JsonInteger(start_code_line)
 								);
 
-
-					DataReference code_block_data_reference =
-							DataReference(
-								arg::ReadOnlyBuffer(code_block_string.to_const_void()),
-								arg::Size(code_block_string.length())
-								);
-
 					code_block_object.insert(
-								arg::JsonKey("code"),
-								JsonString(Base64::encode(
-												  arg::SourceData(code_block_data_reference)
-												  )
-											  )
+								"code",
+								JsonString(
+									Base64::encode(code_block_string)
+									)
 								);
 
 
@@ -116,62 +102,54 @@ var::JsonObject MarkdownParser::extract_code_snippets(
 
 
 
-		String name = File::name(file_path.argument());
+		String name = File::name(file_path);
 
 		name.replace(
-					arg::StringToErase(".md"),
-					arg::StringToInsert("")
+					String::ToErase(".md"),
+					String::ToInsert("")
 					);
 
 		result.insert(
-					arg::JsonKey("name"),
+					"name",
 					JsonString(name)
 					);
 
 		result.insert(
-					arg::JsonKey("destinationDirectory"),
+					"destinationDirectory",
 					JsonString(
-						properties.at(
-							arg::JsonKey("output")
-							).to_string() << "/code/" << name
+						properties
+						.at("output")
+						.to_string() << "/code/" << name
 						)
 					);
 
 		result.insert(
-					arg::JsonKey("source"),
-					JsonString(file_path.argument())
+					"source",
+					JsonString(file_path)
 					);
 
 		result.insert(
-					arg::JsonKey("template"),
-					properties.at(
-						arg::JsonKey("template")
-						)
+					"template",
+					properties.at("template")
 					);
 
 		result.insert(
-					arg::JsonKey("buildDirectory"),
-					properties.at(
-						arg::JsonKey("buildDirectory")
-						)
+					"buildDirectory",
+					properties.at("buildDirectory")
 					);
 
 		result.insert(
-					arg::JsonKey("cmakeOptions"),
-					properties.at(
-						arg::JsonKey("cmakeOptions")
-						)
+					"cmakeOptions",
+					properties.at("cmakeOptions")
 					);
 
 		result.insert(
-					arg::JsonKey("makeOptions"),
-					properties.at(
-						arg::JsonKey("makeOptions")
-						)
+					"makeOptions",
+					properties.at("makeOptions")
 					);
 
 		result.insert(
-					arg::JsonKey("snippets"),
+					"snippets",
 					code_block_array
 					);
 	}

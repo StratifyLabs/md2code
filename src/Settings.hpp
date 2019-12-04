@@ -11,15 +11,13 @@ public:
 	int initialize();
 
 	var::JsonArray markdown(){
-		return m_settings.at(
-					arg::JsonKey("markdown")
-					).to_array();
+		return m_settings.at("markdown").to_array();
 	}
 
 private:
 	var::JsonObject m_settings;
 
-	const var::ConstString settings_file_name(){
+	const var::String settings_file_name(){
 		return "md2code.json";
 	}
 };
