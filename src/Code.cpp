@@ -11,7 +11,7 @@ Code::Code(){
 int Code::generate(const var::String & snippets_path){
 
 	JsonObject project_object = JsonDocument().load(
-				snippets_path
+				fs::File::Path(snippets_path)
 				).to_object();
 
 	JsonArray snippets_array =
@@ -26,8 +26,18 @@ int Code::generate(const var::String & snippets_path){
 	String destination_directory =
 			project_object.at("destinationDirectory").to_string();
 
+	printer().debug(
+				"generate code in destination directory %s",
+				destination_directory.cstring()
+				);
+
 	String build_directory =
 			project_object.at("buildDirectory").to_string();
+
+	printer().debug(
+				"build code in directory %s",
+				build_directory.cstring()
+				);
 
 	create_code_project(
 				fs::File::SourcePath(
@@ -71,7 +81,7 @@ int Code::create_code_project(
 		){
 
 	printer().debug(
-				"create destination directory '%s'",
+				"create code in directory '%s'",
 				destination_path.argument().cstring()
 				);
 

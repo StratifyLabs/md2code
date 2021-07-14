@@ -29,7 +29,7 @@ int Settings::initialize(){
 		return -1;
 	}
 
-	printer() << m_settings;
+	printer().output() << m_settings;
 
 	return 0;
 }
